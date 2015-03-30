@@ -541,6 +541,7 @@ namespace mongo {
 
     StatusWith<RecordId> RocksRecordStore::updateRecord( OperationContext* txn,
                                                         const RecordId& loc,
+                                                        const RecordData& oldRec,
                                                         const char* data,
                                                         int len,
                                                         bool enforceQuota,
@@ -552,11 +553,7 @@ namespace mongo {
             throw WriteConflictException();
         }
 
-        std::string old_value;
-        auto status = ru->Get(key, &old_value);
-        invariantRocksOK(status);
-
-        int old_length = old_value.size();
+        const int old_length = oldRec.size();
 
         ru->writeBatch()->Put(key, rocksdb::Slice(data, len));
         if (_isOplog) {
